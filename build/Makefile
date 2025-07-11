@@ -129,30 +129,6 @@ Program/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/build
 .PHONY : Program/fast
 
-src/Application.o: src/Application.cpp.o
-.PHONY : src/Application.o
-
-# target to build an object file
-src/Application.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/src/Application.cpp.o
-.PHONY : src/Application.cpp.o
-
-src/Application.i: src/Application.cpp.i
-.PHONY : src/Application.i
-
-# target to preprocess a source file
-src/Application.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/src/Application.cpp.i
-.PHONY : src/Application.cpp.i
-
-src/Application.s: src/Application.cpp.s
-.PHONY : src/Application.s
-
-# target to generate assembly for a file
-src/Application.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/src/Application.cpp.s
-.PHONY : src/Application.cpp.s
-
 src/glad.o: src/glad.c.o
 .PHONY : src/glad.o
 
@@ -177,6 +153,54 @@ src/glad.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/src/glad.c.s
 .PHONY : src/glad.c.s
 
+src/main.o: src/main.cpp.o
+.PHONY : src/main.o
+
+# target to build an object file
+src/main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
+
+src/main.i: src/main.cpp.i
+.PHONY : src/main.i
+
+# target to preprocess a source file
+src/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
+
+src/main.s: src/main.cpp.s
+.PHONY : src/main.s
+
+# target to generate assembly for a file
+src/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
+
+src/qingw/func.o: src/qingw/func.cpp.o
+.PHONY : src/qingw/func.o
+
+# target to build an object file
+src/qingw/func.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/src/qingw/func.cpp.o
+.PHONY : src/qingw/func.cpp.o
+
+src/qingw/func.i: src/qingw/func.cpp.i
+.PHONY : src/qingw/func.i
+
+# target to preprocess a source file
+src/qingw/func.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/src/qingw/func.cpp.i
+.PHONY : src/qingw/func.cpp.i
+
+src/qingw/func.s: src/qingw/func.cpp.s
+.PHONY : src/qingw/func.s
+
+# target to generate assembly for a file
+src/qingw/func.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Program.dir/build.make CMakeFiles/Program.dir/src/qingw/func.cpp.s
+.PHONY : src/qingw/func.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -186,12 +210,15 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... Program"
-	@echo "... src/Application.o"
-	@echo "... src/Application.i"
-	@echo "... src/Application.s"
 	@echo "... src/glad.o"
 	@echo "... src/glad.i"
 	@echo "... src/glad.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
+	@echo "... src/qingw/func.o"
+	@echo "... src/qingw/func.i"
+	@echo "... src/qingw/func.s"
 .PHONY : help
 
 

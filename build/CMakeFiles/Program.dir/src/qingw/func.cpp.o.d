@@ -1,6 +1,7 @@
-CMakeFiles/Program.dir/src/Application.cpp.o: \
- /home/qingw/OpenGL/src/Application.cpp /usr/include/stdc-predef.h \
- /usr/local/include/glad/glad.h /usr/local/include/KHR/khrplatform.h \
+CMakeFiles/Program.dir/src/qingw/func.cpp.o: \
+ /home/qingw/OpenGL/src/qingw/func.cpp /usr/include/stdc-predef.h \
+ /home/qingw/OpenGL/include/func.h /usr/local/include/glad/glad.h \
+ /usr/local/include/KHR/khrplatform.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.1.1/include/stdint.h \
  /usr/include/stdint.h /usr/include/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \

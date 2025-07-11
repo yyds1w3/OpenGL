@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/Program.dir/src/Application.cpp.o CMakeFiles/Program.dir/src/glad.c.o -o Program  /usr/lib/libglfw.so.3.4 /usr/lib/libGL.so /usr/lib/libGLEW.so 
+/usr/bin/c++ CMakeFiles/Program.dir/src/glad.c.o CMakeFiles/Program.dir/src/main.cpp.o CMakeFiles/Program.dir/src/qingw/func.cpp.o -o Program  /usr/lib/libglfw.so.3.4 /usr/lib/libGLX.so /usr/lib/libOpenGL.so 

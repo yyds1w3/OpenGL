@@ -2,164 +2,188 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#define DEBUG_BREAK() asm("int $3")
+#define ASSERT(x) if (!(x)) DEBUG_BREAK()
+#define GLCALL(x)   \
+    GLClearError(); \
+    x;              \
+    ASSERT(GLLogCall(#x, __FILE__, __LINE__))
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void processInput(GLFWwindow *window);
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
-
-// 顶点着色器，GLSL语言
-const char *vertexShaderSource = "#version 330 core\n"
-                                 "layout (location = 0) in vec3 aPos;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                 "}\0";
-// 片元着色器
-const char *fragmentShaderSource = "#version 330 core\n"
-                                   "out vec4 FragColor;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                                   "}\n\0";
-
-int main()
+static void GLClearError()
 {
-    // glfw: initialize and configure
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+    while(glGetError() != GL_NO_ERROR);
+}
 
-    // glfw window creation
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL)
+static bool GLLogCall(const char* function, const char* file, int line)
+{
+    while (GLenum error = glGetError()) // 如果no_error, error == 0, 循环不会执行， 循环保证了打印出所有error
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        std::cout << "[OpenGL Error] (" << error << "): " << function <<  " " << file << ":" << line  << std::endl;
+        return false;
+    }
+    return true;
+}
+struct ShaderProgramSource
+{
+    std::string VertexSource;
+    std::string FragmentSource;
+};
+
+static ShaderProgramSource ParseShader(const std::string &filepath)
+{
+    std::ifstream stream(filepath);
+    enum class ShaderType
+    {
+        NONE = -1, VERTEX = 0, FRAGMENT = 1
+    };
+    ShaderType type = ShaderType::NONE;
+    std::stringstream ss[2];
+    std::string line;
+    while (getline(stream, line))
+    {
+        if (line.find("#shader") != std::string::npos)
+        {
+            if (line.find("vertex") != std::string::npos)
+            {
+                type = ShaderType::VERTEX;
+            }
+            else if (line.find("fragment") != std::string::npos)
+            {
+                type = ShaderType::FRAGMENT;
+            }
+        }
+        else
+        {
+            ss[int(type)] << line << '\n';
+        }
+    }
+    return {ss[0].str(), ss[1].str()};
+}
+static unsigned int CompileShader(unsigned int type, const std::string &source)
+{
+    unsigned int id = glCreateShader(type);
+    const char *src = source.c_str();
+    glShaderSource(id, 1, &src, nullptr);
+    glCompileShader(id);
+
+    // TODO: Error Handling
+    int result;
+    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+    if (result == GL_FALSE)
+    {
+        int length;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        char *message = (char *)alloca(length * sizeof(char));
+        glGetShaderInfoLog(id, length, &length, message);
+        std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
+        std::cout << message << std::endl;
+        glDeleteShader(id);
+        return 0;
+    }
+
+    return id;
+}
+
+static unsigned int CreatShader(const std::string& vertexShader, const std::string& fragmentShader)
+{
+    unsigned int program = glCreateProgram();
+    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+    glLinkProgram(program);
+    glValidateProgram(program);
+
+    // glDeleteShader(vs);
+    // glDeleteShader(fs);
+
+    return program;
+}
+int main(void)
+{
+    GLFWwindow *window;
+
+    /* Initialize the library */
+    if (!glfwInit())
+        return -1;
+
+    /* Create a windowed mode window and its OpenGL context */
+    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    if (!window)
+    {
         glfwTerminate();
         return -1;
     }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // glad: load all OpenGL function pointers
+    /* Make the window's context current */
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+    std::cout << glGetString(GL_VERSION) << std::endl;
 
-    // build and compile our shader program
-    // ------------------------------------
-    // vertex shader
-    int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL); // 把这个着色器源码附加到着色器对象。着色器对象，源码字符串数量，VS真正的源码
-    glCompileShader(vertexShader);
-    // check for shader compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
-    }
-    // fragment shader
-    int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
-    }
-    // link shaders
-    int shaderProgram = glCreateProgram();       // shaderProgram 是多个着色器合并之后并最终链接完成的版本
-    glAttachShader(shaderProgram, vertexShader); // 附加
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
-                  << infoLog << std::endl;
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f, // left
-        0.5f, -0.5f, 0.0f,  // right
-        0.0f, 0.5f, 0.0f    // top
+    double positions[] = {
+        -0.5, -0.5, // 0
+         0.5, -0.5, // 1
+         0.5,  0.5, // 2
+        -0.5,  0.5, // 3
+        };
+    unsigned int indices[] = {
+        0, 1, 2,
+        2, 3, 0
     };
 
-    unsigned int VBO, VAO;
-    // 创建VAO对象
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-    // 创建VBO对象，把顶点数组复制到一个顶点缓冲中，供OpenGL使用
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);                                        // 缓冲绑定到GL_ARRAY_BUFFER
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // 顶点数据复制到缓冲的内存中
-
-    // 解释顶点数据方式
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0); // 顶点数据的解释
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(double), positions, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 2 * sizeof(double), 0);
 
-    // 解绑VAO
-    glBindVertexArray(0);
-    // 解绑VBO
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    unsigned int ibo;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
-    // render loop
-    // -----------
+    ShaderProgramSource source = ParseShader("../res/shaders/Basic.shader");
+    unsigned int shader = CreatShader(source.VertexSource, source.FragmentSource);
+    glUseProgram(shader);
+    GLCALL(int location = glGetUniformLocation(shader, "u_Color"));
+    ASSERT(location != -1);
+    float r = 0.0f;
+    float increment = 0.05f;
+    /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-        // input
-        // -----
-        processInput(window);
-
-        // render
-        // ------
+        /* Render here */
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+        // glDrawArrays(GL_TRIANGLES, 0, 6);
+        GLCALL(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+        GLCALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+        if (r > 1.0f)
+        {
+            increment = -0.05f;
+        }else if (r < 0.0f)
+        {
+            increment = 0.05f;
+        }
 
-        // draw our first triangle
-        glUseProgram(shaderProgram);      // 激活shaderProgram，怎么画
-        glBindVertexArray(VAO);           // 画什么
-        glDrawArrays(GL_TRIANGLES, 0, 3); // 开始画
-
+        r += increment;
+        /* Swap front and back buffers */
         glfwSwapBuffers(window);
+
+        /* Poll for and process events */
         glfwPollEvents();
     }
-
-    // optional: de-allocate all resources
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderProgram);
+    glDeleteProgram(shader);
     glfwTerminate();
-
     return 0;
-}
-
-// 键盘按键回调函数
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
-
-// 调整窗口大小回调函数
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
-    glViewport(0, 0, width, height);
 }

@@ -1,0 +1,26 @@
+Basic programing process:
+1. generate object 
+2. bind object with the context's attribute
+3. set the object options
+4. unbind the object with the context's attribute
+
+VAO      Vertex Array Object 
+VBO      VErtex Buffer Object
+EBO(IBO) Element(index) Buffer Object
+
+
+shader : [ 3D --PipeLine--> 2D --PipeLine--> Pixel(with color) ] small program
+
+process : LinkBuffer --> Program Shader -> Explain the Buffer by VAO --> Draw
+
+Vertex attribute(glVertexAttribPointer):
+    Location(index): A Vertex may have different attribution, like Postion, Texure(纹理), Material(材质)
+    Count: How many numbers in this Location
+    Type: what's the data type of the number
+    Normalized: if int (0~255) needs to be normalized into 0~1.
+    Size: The total bytes size about the Locations(vertex).
+    Offset: The Offset of the Locatino in the buffer
+
+VAO needs twice bind, the first is to configure the VAO, like recording modern , and the second is to activate rendering modern.
+
+GLSL: Version + (in, out, uniform)var  + main  

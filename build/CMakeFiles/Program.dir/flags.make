@@ -5,13 +5,13 @@
 # compile CXX with /usr/bin/c++
 C_DEFINES = 
 
-C_INCLUDES = 
+C_INCLUDES = -I/home/qingw/OpenGL/include
 
 C_FLAGS = -std=gnu11
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = 
+CXX_INCLUDES = -I/home/qingw/OpenGL/include
 
 CXX_FLAGS = -std=gnu++17
 
